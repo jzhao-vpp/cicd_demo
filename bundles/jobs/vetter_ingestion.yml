@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=bundle_config_schema.json
+resources:
+
+  jobs:
+    # A two-task Databricks Workflow - dlt + notebook report
+    vetter_ingestion:
+      name: "[${bundle.environment}] Vetter API Ingestion"
+      tags: 
+        environment: "${bundle.environment}"
+      tasks:
+        - task_key: "${bundle.environment}_vetter_api_ingestion"
+          notebook_task:
+            base_parameters:
+              # "/Workspace" prefix needed for jobs parameters
+              FILE_PATH: "/Workspace${workspace.file_path}"
+              CONFIG_PATH: "/Workspace${workspace.file_path}/notebooks/configs/api_cdc_configs.yml"
+              SOURCE: vetter
+              PRACTICE: LAKECOUNTRY
+              ENVIRONMENT: ${bundle.environment}
+            notebook_path: ../../notebooks/abstract_cdc.py
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            num_workers: 1
+            node_type_id: Standard_DS3_v2  
+      permissions:
+        - group_name: DnA
+          level: CAN_MANAGE_RUN
+      email_notifications:
+          on_failure:
+          - ${workspace.current_user.userName}
+          existing_cluster_id: 0814-142525-g78damy5
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            num_workers: 1
+            node_type_id: Standard_DS3_v2    

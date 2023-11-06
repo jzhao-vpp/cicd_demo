@@ -1,0 +1,30 @@
+resources:
+  pipelines:
+    # Our DLT pipeline
+    bronze__vetter:
+      name: "${bundle.environment}__bronze__vetter"
+      target: ${bundle.environment}
+      clusters:
+        - label: default
+          autoscale: 
+            min_workers: 1
+            max_workers: 2
+      continuous: false
+      libraries:
+        - notebook: # notebooks has no .py extension
+            path: "${workspace.file_path}/pipelines/abstract_bronze"
+      channel: CURRENT
+      edition: ADVANCED
+      photon: false
+      configuration:
+        # "/Workspace" prefix needed for DLT configs
+        CONFIG_PATH: "/Workspace${workspace.file_path}/pipelines/configs/daily_dvm_temp_dlt.yml"
+        FILE_PATH: "/Workspace${workspace.file_path}"
+      notifications:
+        - email_recipients: 
+          - ${workspace.current_user.userName}
+        - alerts: 
+          - "on-update-failure"
+      permissions:
+        - group_name: DnA
+          level: CAN_RUN       

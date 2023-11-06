@@ -1,0 +1,63 @@
+# This is a Databricks asset bundle definition for current repo.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+# Name of this file should NOT be changed.
+bundle:
+  # use git repo name for the bundle
+  name: lakehouse_bronze
+
+include:
+  - bundles/jobs/*.yml
+  - bundles/pipelines/*.yml
+
+# settings under targets will overide the values from resources when deploying to that target
+targets:
+  # The 'dev' target, used for development purposes.
+  # Whenever a developer deploys using 'dev', they get their own copy.
+  dev:
+    # We use 'mode: development' to make sure everything deployed to this target gets a prefix
+    # like '[dev my_user_name]'. Setting this mode also disables any schedules and
+    # automatic triggers for jobs and enables the 'development' mode for Delta Live Tables pipelines.
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-2723577694562002.2.azuredatabricks.net/
+    # existing cluster id for development
+    compute_id: 0814-142525-g00000
+    run_as:
+      # This runs as username@company.com in production. Alternatively,
+      # a service principal could be used here using service_principal_name
+      # (see Databricks documentation).
+      user_name: ${workspace.current_user.userName}
+      
+  stg:
+    # For production deployments, we only have a single copy, so we override the
+    # workspace.root_path default of
+    # /Users/${workspace.current_user.userName}/.bundle/${bundle.target}/${bundle.name}
+    # to a path that is not specific to the current user.
+    mode: production
+    # Set main branch to deploy from
+    # git:
+    #   branch: main
+    workspace:
+      host: https://vpp.azuredatabricks.net/
+      root_path: /Staging/${bundle.name}
+    run_as:
+      # for service principals, use service principal application id
+      service_principal_name: 05253780-0000000000000000000
+
+  # The 'prod' target, used for production deployment.
+  prod:
+    # For production deployments, we only have a single copy, so we override the
+    # workspace.root_path default of
+    # /Users/${workspace.current_user.userName}/.bundle/${bundle.target}/${bundle.name}
+    # to a path that is not specific to the current user.
+    mode: production
+    # Set main branch to deploy from
+    # git:
+    #   branch: main
+    workspace:
+      host: https://vpp.azuredatabricks.net/
+      root_path: /Production/${bundle.name}
+    run_as:
+      # for service principals, use service principal application id
+      service_principal_name: 05253780-0000000000000000000
